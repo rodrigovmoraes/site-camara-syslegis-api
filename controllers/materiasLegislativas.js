@@ -1,0 +1,104 @@
+/*****************************************************************************
+*************************** DEPENDENCIES SECTION *****************************
+******************************* (LIBS MODULES) *******************************
+/*****************************************************************************/
+var winston = require('winston');
+var Utils = require('../util/Utils.js');
+var _ = require('lodash');
+var materiasLegislativaService = require('../services/MateriasLegislativaService.js');
+
+/*****************************************************************************
+******************************* PRIVATE **************************************
+/*****************************************************************************/
+//...
+
+/*****************************************************************************
+******************************* PUBLIC ***************************************
+*****************************************************************************/
+//module methods
+module.exports.pesquisaMateriasLegislativas = function(req, res, next) {
+   if(req.body.filter) {
+      var filter = req.body.filter ? req.body.filter : {};
+      return materiasLegislativaService
+         .searchMateriasLegislativas(filter)
+         .then(function(result) {
+            Utils.sendJSONresponse(res, 200, result);
+         }).catch(function(err){
+            winston.error("Error while searching materias legislativas, err = [%s]", err);
+            Utils.next(400, err, next);
+         });
+   } else {
+      Utils.sendJSONresponse(res, 400, { message: 'undefined filter' });
+   }
+}
+
+module.exports.getMateriaLegislativa = function(req, res, next) {
+   if(req.params.id) {
+      var idMateria = req.params.id;
+      return materiasLegislativaService
+         .getMateriaLegislativa(idMateria)
+         .then(function(result) {
+            Utils.sendJSONresponse(res, 200, result);
+         }).catch(function(err){
+            winston.error("Error while getting materia legislativa, err = [%s]", err);
+            Utils.next(400, err, next);
+         });
+   } else {
+      Utils.sendJSONresponse(res, 400, { message: 'undefined materia id' });
+   }
+}
+
+module.exports.getTiposDeMateria = function(req, res, next) {
+   return materiasLegislativaService
+         .getTiposDeMateria()
+         .then(function(result) {
+            Utils.sendJSONresponse(res, 200, result);
+         }).catch(function(err){
+            winston.error("Error while getting tipos de materias, err = [%s]", err);
+            Utils.next(400, err, next);
+         });
+}
+
+module.exports.getAutores = function(req, res, next) {
+   return materiasLegislativaService
+         .getAutores()
+         .then(function(result) {
+            Utils.sendJSONresponse(res, 200, result);
+         }).catch(function(err){
+            winston.error("Error while getting autores, err = [%s]", err);
+            Utils.next(400, err, next);
+         });
+}
+
+module.exports.getUnidadesDeTramitacao = function(req, res, next) {
+   return materiasLegislativaService
+         .getUnidadesDeTramitacao()
+         .then(function(result) {
+            Utils.sendJSONresponse(res, 200, result);
+         }).catch(function(err){
+            winston.error("Error while getting unidades de tramitacao, err = [%s]", err);
+            Utils.next(400, err, next);
+         });
+}
+
+module.exports.getListaDeStatusDeTramitacao = function(req, res, next) {
+   return materiasLegislativaService
+         .getListaDeStatusDeTramitacao()
+         .then(function(result) {
+            Utils.sendJSONresponse(res, 200, result);
+         }).catch(function(err){
+            winston.error("Error while getting lista status tramitacao, err = [%s]", err);
+            Utils.next(400, err, next);
+         });
+}
+
+module.exports.getClassificacoes = function(req, res, next) {
+   return materiasLegislativaService
+         .getClassificacoes()
+         .then(function(result) {
+            Utils.sendJSONresponse(res, 200, result);
+         }).catch(function(err){
+            winston.error("Error while getting classificacoes, err = [%s]", err);
+            Utils.next(400, err, next);
+         });
+}

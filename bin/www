@@ -1,0 +1,28 @@
+#!/usr/bin/env node
+/*****************************************************************************
+********************** START APPLICATION SCRIPT ******************************
+/*****************************************************************************/
+var winston = require('winston');
+var config = require('config');
+
+/*****************************************************************************
+***************************** APP CONFIG SECTION *****************************
+******************************************************************************/
+var camaraSyslegisApiConfig  = config.get("CamaraSyslegisApi")
+//log configuration
+winston.setLevels(camaraSyslegisApiConfig.Log.levels);
+winston.addColors(camaraSyslegisApiConfig.Log.levelsColors);
+winston.configure({
+    transports: [
+      new (winston.transports.Console)({ colorize: true })
+    ]
+ });
+winston.level = camaraSyslegisApiConfig.Log.level;
+
+//HTTP SERVER START
+var app = require('../app.js');
+app.set('port', process.env.PORT || 3000);
+
+var server = app.listen(app.get('port'), '0.0.0.0', 512, function() {
+  winston.info('Express server listening on port %d', server.address().port);
+});
