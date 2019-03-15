@@ -49,5 +49,4 @@ router.get('/vereadores', vereadores.getVereadores);
 router.get('/vereador/resumoMaterias/:id', vereadores.getResumoMaterias);
 router.get('/vereador/:id', vereadores.getVereador);
 
-
 module.exports = router;
