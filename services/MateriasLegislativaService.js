@@ -27,19 +27,20 @@ module.exports.searchMateriasLegislativas = function(filter) {
    var total = null;
    var materiasLegislativas = null;
    var queryMateriasLegislativasSelectPart = "SELECT documento.id, " +
-                                             "        tipo_documento.descricao as tipoDocumento, "  +
-                                             "        documento.numero, "  +
-                                             "        documento.ano, "  +
-                                             "        documento.data_publicacao, "  +
-                                             "        documento.data_apresentacao, "  +
-                                             "        documento.data_fim_prazo_executivo as data_prazo_executivo, "  +
-                                             "        documento.data_processo as data_prazo_processo, "  +
-                                             "        autor.descricao as autor, "  +
-                                             "        documento.descricao as ementa, "  +
-                                             "        status_tramitacao.descricao ultimaTramicao ";
-   var queryMateriasLegislativasTail       = "FROM    tipo_documento, "  +
-                                             "        autor, " +
-                                             "        documento "  +
+                                             "       tipo_documento.descricao as tipoDocumento, "  +
+                                             "       documento.numero, "  +
+                                             "       documento.ano, "  +
+                                             "       documento.data_publicacao, "  +
+                                             "       documento.data_apresentacao, "  +
+                                             "       documento.data_fim_prazo_executivo as data_prazo_executivo, "  +
+                                             "       documento.data_processo as data_prazo_processo, "  +
+                                             "       autor.descricao as autor, "  +
+                                             "       documento.descricao as ementa, "  +
+                                             "       status_tramitacao.descricao ultimaTramicao, " +
+                                             "       IFNULL(documento.data_alteracao, documento.data_cadastro) as ultimaAtualizacao ";
+   var queryMateriasLegislativasTail       = "FROM   tipo_documento, "  +
+                                             "       autor, " +
+                                             "       documento "  +
                                              "LEFT JOIN status_tramitacao on documento.status_ultima_tramitacao_id = status_tramitacao.id " +
                                              "LEFT JOIN unidade_tramitacao on documento.local_ultima_tramitacao_id = unidade_tramitacao.id " +
                                              "WHERE documento.tipo_documento_id = tipo_documento.id " +
