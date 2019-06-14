@@ -37,7 +37,9 @@ module.exports.searchMateriasLegislativas = function(filter) {
                                              "       autor.descricao as autor, "  +
                                              "       documento.descricao as ementa, "  +
                                              "       status_tramitacao.descricao ultimaTramicao, " +
-                                             "       IFNULL(documento.data_alteracao, documento.data_cadastro) as ultimaAtualizacao ";
+                                             "       IFNULL(documento.data_alteracao, documento.data_cadastro) as ultimaAtualizacao, " +
+                                             "       documento.numero_lei as numLei, " +
+                                             "       documento.id_tipo_lei as tipoLei ";
    var queryMateriasLegislativasTail       = "FROM   tipo_documento, "  +
                                              "       autor, " +
                                              "       documento "  +
@@ -160,6 +162,12 @@ module.exports.searchMateriasLegislativas = function(filter) {
                                        "             WHERE materia_legislativa_classificacoes_materia_id = documento.id ) ) ";
       queryMateriasLegislativasParams.push(filter.classificacaoId);
    }
+   //lei
+   if (filter.lei) {
+      queryMateriasLegislativasTail += "AND documento.numero_lei IS NOT NULL ";
+      queryMateriasLegislativasTail += "AND documento.id_tipo_lei IS NOT NULL ";
+   }
+
    //query para contar o total de registros (sem paginação)
    var queryMateriasLegislativasCount = "SELECT COUNT(1) as total " + queryMateriasLegislativasTail;
    //adiciona o order by
