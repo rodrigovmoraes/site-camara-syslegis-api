@@ -19,9 +19,11 @@ var comissoesService = require('../services/ComissoesService.js');
 module.exports.getComissoes = function(req, res, next) {
    var filter = {};
 
-   if(req.query.sessaoAtual) {
+   if (req.query.sessaoAtual) {
       var sessaoAtual = parseInt(req.query.sessaoAtual)
       filter.sessaoAtual = sessaoAtual === 1;
+   } else if (req.query.sessaoId) {
+      filter.sessaoId = parseInt(req.query.sessaoId);
    } else if (req.query.legislaturaId) {
       filter.legislaturaId = parseInt(req.query.legislaturaId);
    }
