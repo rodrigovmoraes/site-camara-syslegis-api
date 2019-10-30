@@ -3,8 +3,8 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www",
-    "start-debug": "node --inspect-brk ./bin/www",
+    "start": "node -r ./bin/www",
+    "start-debug": "node -r --inspect-brk ./bin/www",
     "test": "./node_modules/.bin/mocha --recursive --reporter spec",
     "test-debug": "./node_modules/.bin/mocha --recursive --debug-brk"
   },
