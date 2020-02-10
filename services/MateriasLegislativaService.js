@@ -171,7 +171,11 @@ module.exports.searchMateriasLegislativas = function(filter) {
    //query para contar o total de registros (sem paginação)
    var queryMateriasLegislativasCount = "SELECT COUNT(1) as total " + queryMateriasLegislativasTail;
    //adiciona o order by
-   queryMateriasLegislativasTail += "ORDER BY documento.data_apresentacao DESC, documento.numero DESC, tipoDocumento DESC ";
+   if (filter.tipoMateriaId) {
+     queryMateriasLegislativasTail += "ORDER BY documento.ano DESC, documento.numero DESC, documento.data_apresentacao DESC ";
+   } else {
+     queryMateriasLegislativasTail += "ORDER BY documento.data_apresentacao DESC, documento.numero DESC, tipoDocumento DESC ";
+   }
 
    return syslegisDataBase
       .openConnection()
