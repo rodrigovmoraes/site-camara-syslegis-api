@@ -48,7 +48,7 @@ module.exports.searchMateriasLegislativas = function(filter) {
                                              "WHERE documento.tipo_documento_id = tipo_documento.id " +
                                              "AND documento.autor_id = autor.id " +
                                              "AND documento.numero is not null " +
-                                             "AND documento.documento_publico ='sim' " +
+                                             "AND LOWER(documento.documento_publico) ='sim' " +
                                              "AND documento.numero != 99999 ";
    var queryMateriasLegislativasParams = [];
    //build the query based on filter
@@ -443,7 +443,7 @@ module.exports.getMateriaLegislativa = function(idMateria) {
                                    "       tipo_documento " +
                                    "WHERE  tipo_documento.id = documento.tipo_documento_id " +
                                    "AND    autor.id = documento.autor_id " +
-                                   "AND    documento.documento_publico ='sim' " +
+                                   "AND    validado = true " +
                                    "AND    documento.materia_legislativa_id = ? " +
                                    "ORDER BY documento.data_documento DESC;";
    var queryDocumentosAcessoriosParams = [];
@@ -525,5 +525,4 @@ module.exports.getMateriaLegislativa = function(idMateria) {
             'tramitacoes': tramitacoes
          }
       });
-
 }
