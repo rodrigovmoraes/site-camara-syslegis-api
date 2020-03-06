@@ -455,7 +455,8 @@ module.exports.getMateriaLegislativa = function(idMateria) {
                           "          unidade_tramitacao.descricao as localizacao, " +
                           "          status_tramitacao.descricao as situacao, " +
                           "          tramitacao.texto_da_acao as textoDaAcao, " +
-                          "          documento.id as documentoAcessorio " +
+                          "          documento.id as documentoId, " +
+                          "          documento.descricao as documentoDescricao " +
                           "FROM      tramitacao " +
                           "LEFT JOIN unidade_tramitacao " +
                           "       ON tramitacao.local_tramitacao_id = unidade_tramitacao.id " +
@@ -505,7 +506,46 @@ module.exports.getMateriaLegislativa = function(idMateria) {
          //query tramitacoes
          return syslegisDataBase.query(queryTramitacoes, queryTramitacoesParams);
       }).then(function(tramitacoesRows) {
-         tramitacoes = tramitacoesRows;
+         tramitacoes = [];
+         var i;
+         var documentos = [];
+         var tramitacao = null;
+         var prevTramitacaoId = -1;
+
+         if (tramitacoesRows) {
+            for (i = 0; i < tramitacoesRows.length; i++) {
+               if (prevTramitacaoId !== tramitacoesRows[i].id_tramitacao) { //new tramitacao object ?
+                  if (tramitacao) {
+                     //add the current tramitacao to the list
+                     delete tramitacao.documentoId;
+                     delete tramitacao.documentoDescricao;
+                     tramitacao.tramitacaoDocumentos = documentos;
+                     tramitacoes.push(tramitacao);
+                  }
+                  //tramitacao changed
+                  //set new tramitacao object
+                  tramitacao = tramitacoesRows[i];
+                  documentos = [];
+               }
+               //add document to the list of the documents - current tramitacao
+               if (tramitacoesRows[i].documentoId) {
+                  documentos.push({
+                     documentoTramitacaoId: tramitacoesRows[i].documentoId,
+                     documentoTramitacaoDescricao: tramitacoesRows[i].documentoDescricao
+                  });
+               }
+               //store the if of the previous tramitacao object
+               prevTramitacaoId = tramitacoesRows[i].id_tramitacao;
+            }
+            //add the last tramitacao object if there are any
+            if (tramitacao) {
+               //add the current tramitacao to the list
+               delete tramitacao.documentoId;
+               delete tramitacao.documentoDescricao;
+               tramitacao.tramitacaoDocumentos = documentos;
+               tramitacoes.push(tramitacao);
+            }
+         }
          return syslegisDataBase.close();
       },
          //error in any previous then
