@@ -33,10 +33,25 @@ module.exports.pesquisaMateriasLegislativas = function(req, res, next) {
 }
 
 module.exports.getMateriaLegislativa = function(req, res, next) {
-   if(req.params.id) {
-      var idMateria = req.params.id;
+   var filter = {};
+   var filterOk = false;
+
+   //find by id
+   if (req.params.id) {
+      filter.id = req.params.id;
+      filterOk = true;
+   //find by number and year
+   } else if (req.query.numero && req.query.ano && req.query.tipo) {
+      var filter = {};
+      filter.numero = req.query.numero;
+      filter.ano = req.query.ano;
+      filter.tipo = req.query.tipo;
+      filterOk = true;
+   }
+
+   if (filterOk) {
       return materiasLegislativaService
-         .getMateriaLegislativa(idMateria)
+         .getMateriaLegislativa(filter)
          .then(function(result) {
             Utils.sendJSONresponse(res, 200, result);
          }).catch(function(err){

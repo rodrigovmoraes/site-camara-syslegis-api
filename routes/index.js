@@ -39,6 +39,7 @@ router.get('/unidadesDeTramitacao', materiasLegislativas.getUnidadesDeTramitacao
 router.get('/listaDeStatusDeTramitacao', materiasLegislativas.getListaDeStatusDeTramitacao);
 router.get('/classificacoes', materiasLegislativas.getClassificacoes);
 router.get('/materiaLegislativa/:id', materiasLegislativas.getMateriaLegislativa);
+router.get('/materiaLegislativa', materiasLegislativas.getMateriaLegislativa);
 router.get('/ordensDoDia/anos', ordensDoDia.getListaAnos);
 router.get('/ordensDoDia', ordensDoDia.getOrdensDoDia);
 router.get('/comissoes', comissoes.getComissoes);

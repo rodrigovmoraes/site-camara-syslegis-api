@@ -4,6 +4,7 @@
 ******************************************************************************/
 var winston = require('winston');
 var MySQLDatabase = require('../util/MySQLDatabase.js');
+var cheerio = require('cheerio');
 
 /*****************************************************************************
 ********************************** CONFIG ************************************
@@ -15,9 +16,92 @@ var MySQLDatabase = require('../util/MySQLDatabase.js');
 /*****************************************************************************
 *********************************** PRIVATE ***********************************
 ******************************************************************************/
-//...
-//..
-//.
+var _apensadasHtmlFieldToObjectList = function (apensadasHtmlField) {
+   var objectList = [];
+   var $;
+   var hrefValue;
+   var abrirMateriaApensadaRegex = new RegExp("^abrirMateriaApensada\.*$");
+   var getNumeroRegex = new RegExp("numero=([0-9]+)");
+   var getAnoRegex = new RegExp("ano=([0-9]+)");
+   var getTipoRegex = new RegExp("tipo=([0-9]+)");
+   var match;
+   var ano, numero, tipo, descricao;
+   var apensadaObject;
+
+
+   if (apensadasHtmlField) {
+      $ = cheerio.load(apensadasHtmlField);
+      if ($) {
+         $('a').each(function(index) {
+            hrefValue = $(this).attr('href');
+            //if it is a url to a "materia apensada"
+            if (abrirMateriaApensadaRegex.test(hrefValue)) {
+               ano = null;
+               numero = null;
+               tipo = null;
+               //get numero, ano, tipo
+               //numero
+               match = hrefValue.match(getNumeroRegex)
+               if (match && match.length > 1) {
+                  numero = match[1];
+               }
+               //ano
+               match = hrefValue.match(getAnoRegex)
+               if (match && match.length > 1) {
+                  ano = match[1];
+               }
+               //tipo
+               match = hrefValue.match(getTipoRegex)
+               if (match && match.length > 1) {
+                  tipo = match[1];
+               }
+               //descricao
+               descricao = $(this).text();
+               apensadaObject = {};
+               if (numero) apensadaObject.apensadaNumero = numero;
+               if (ano) apensadaObject.apensadaAno = ano;
+               if (tipo) apensadaObject.apensadaTipo = tipo;
+               if (descricao) apensadaObject.apensadaDescricao = descricao.trim();
+               if (Object.keys(apensadaObject).length > 0) objectList.push(apensadaObject);
+            }
+         });
+      }
+   }
+   return objectList;
+}
+
+var _getIdByNumberYearType = function (filter) {
+   var query = "SELECT documento.id as id " +
+               "FROM   documento " +
+               "WHERE  documento.numero = ? " +
+               "AND    documento.ano = ? " +
+               "AND    documento.tipo_documento_id = ? ";
+  var queryParams = [ filter.numero, filter.ano, filter.tipo ];
+  var syslegisDataBase = MySQLDatabase.newMySQLDatabase();
+  var retId = -1;
+
+  return syslegisDataBase
+      .openConnection()
+      .then(function(connection) {
+         return syslegisDataBase.query(query, queryParams);
+      }).then(function(rows) {
+         if (rows && rows.length > 0) {
+            retId = rows[0].id;
+         }
+         return syslegisDataBase.close()
+      },
+         //error in any previous then
+         function (err) {
+              //close the connection and rethrow the error
+              //to an promise catch it
+              return syslegisDataBase.close()
+                                     .then(function() {
+                                        throw err;
+                                     });
+      }).then(function() {
+         return retId;
+      });
+}
 
 /*****************************************************************************
 **************************  Module functions *********************************
@@ -374,7 +458,7 @@ module.exports.getClassificacoes = function() {
       });
 }
 
-module.exports.getMateriaLegislativa = function(idMateria) {
+module.exports.getMateriaLegislativa = async function(filter) {
    //materia
    var queryMateria = "SELECT    documento.id, " +
                       "          tipo_documento.descricao as tipoDocumento, " +
@@ -390,6 +474,7 @@ module.exports.getMateriaLegislativa = function(idMateria) {
                       "          documento.data_fim_prazo_executivo as dataFimPrazoExecutivo, " +
                       "          documento.data_processo as dataFimPrazoProcesso, " +
                       "          documento.apensadas, " +
+                      "          documento.apensada_por, " +
                       "          unidade_tramitacao.descricao as localizacaoAtual, " +
                       "          status_tramitacao.descricao as situacaoAtual, " +
                       "          documento.em_tramitacao as emTramitacao, " +
@@ -405,10 +490,20 @@ module.exports.getMateriaLegislativa = function(idMateria) {
                       "WHERE     tipo_documento.id = documento.tipo_documento_id " +
                       "AND       autor.id = documento.autor_id " +
                       "AND       documento.numero IS NOT NULL " +
-                      "AND       documento.id = ? " +
-                      "AND       documento.documento_publico ='sim'";
+                      "AND       documento.documento_publico ='sim' ";
    var queryMateriaParams = [];
-   queryMateriaParams.push(idMateria);
+   var idMateria = null;
+
+   if (filter.id) {
+      idMateria = filter.id;
+      queryMateria = queryMateria + "AND       documento.id = ? ";
+      queryMateriaParams.push(idMateria);
+   } else if (filter.numero && filter.ano && filter.tipo) {
+      //get id by number, year and type
+      idMateria = await _getIdByNumberYearType(filter);
+      queryMateria = queryMateria + "AND       documento.id = ? ";
+      queryMateriaParams.push(idMateria);
+   }
 
    //classificacoes
    var queryClassificacoes = "SELECT   cm.descricao " +
@@ -484,9 +579,24 @@ module.exports.getMateriaLegislativa = function(idMateria) {
          //query materia
          return syslegisDataBase.query(queryMateria, queryMateriaParams);
       }).then(function(materiaRows) {
+         var apensadas = [];
+         var apensadasPor = [];
+         var i;
+         var $;
+
          //materia result
-         if(materiaRows && materiaRows.length > 0) {
+         if (materiaRows && materiaRows.length > 0) {
             materia  = materiaRows[0];
+            //set apensadas field
+            if (materia.apensadas) {
+               apensadas = _apensadasHtmlFieldToObjectList(materia.apensadas);
+            }
+            materia.apensadas = apensadas;
+            //set apensada_por field
+            if (materia.apensada_por) {
+               apensadasPor = _apensadasHtmlFieldToObjectList(materia.apensada_por);
+            }
+            materia.apensadasPor = apensadasPor;
          }
          //query classificacoes
          return syslegisDataBase.query(queryClassificacoes, queryClassificacoesParams);
