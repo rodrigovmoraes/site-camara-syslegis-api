@@ -42,6 +42,7 @@ router.get('/materiaLegislativa/:id', materiasLegislativas.getMateriaLegislativa
 router.get('/materiaLegislativa', materiasLegislativas.getMateriaLegislativa);
 router.get('/ordensDoDia/anos', ordensDoDia.getListaAnos);
 router.get('/ordensDoDia', ordensDoDia.getOrdensDoDia);
+router.get('/ordemDoDia/:ordemDoDiaId', ordensDoDia.getOrdemDoDia);
 router.get('/comissoes', comissoes.getComissoes);
 router.get('/legislaturas', comissoes.getLegislaturas);
 router.get('/sessoesLegislativas', comissoes.getSessoes);

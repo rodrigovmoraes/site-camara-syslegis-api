@@ -16,6 +16,21 @@ var ordensDoDiaService = require('../services/OrdensDoDiaService.js');
 ******************************* PUBLIC ***************************************
 *****************************************************************************/
 //module methods
+module.exports.getOrdemDoDia = function(req, res, next) {
+   if (req.params.ordemDoDiaId) {
+      return ordensDoDiaService
+               .getOrdemDoDia(req.params.ordemDoDiaId)
+               .then(function(result) {
+                  Utils.sendJSONresponse(res, 200, result);
+               }).catch(function(err) {
+                  winston.error("Error while getting ordem do dia", err);
+                  Utils.next(400, err, next);
+               });
+   } else {
+      Utils.sendJSONresponse(res, 400, { message: 'undefined ordem do dia id' });
+   }
+}
+
 module.exports.getOrdensDoDia = function(req, res, next) {
    var filter = {};
    //build the filter object based on request params
@@ -35,13 +50,13 @@ module.exports.getOrdensDoDia = function(req, res, next) {
       filter.offset = parseInt(req.query.offset);
    }
    return ordensDoDiaService
-      .getOrdensDoDia(filter)
-      .then(function(result) {
-         Utils.sendJSONresponse(res, 200, result);
-      }).catch(function(err){
-         winston.error("Error while searching ordens do dia", err);
-         Utils.next(400, err, next);
-      });
+            .getOrdensDoDia(filter)
+            .then(function(result) {
+               Utils.sendJSONresponse(res, 200, result);
+            }).catch(function(err){
+               winston.error("Error while searching ordens do dia", err);
+               Utils.next(400, err, next);
+            });
 }
 
 module.exports.getListaAnos = function(req, res, next) {

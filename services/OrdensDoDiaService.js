@@ -110,6 +110,59 @@ module.exports.getOrdensDoDia = function(filter) {
       });
 }
 
+module.exports.getOrdemDoDia = function(ordemDoDiaId) {
+   var syslegisDataBase = MySQLDatabase.newMySQLDatabase();
+   var ordemDoDia = null;
+   var ordensDoDiaFileSystemPath = _camaraSyslegisApiConfig.Syslegis.ordensDoDiaFileSystemPath;
+   var ordensDoDiaFileWebUrl = _camaraSyslegisApiConfig.Syslegis.ordensDoDiaFileWebUrl;
+
+   var queryOrdemDoDia = "SELECT  ordem_do_dia.id as id, " +
+                         "        tipo_ordem_do_dia.descricao as descricao, "  +
+                         "        ordem_do_dia.numero as numero, "  +
+                         "        ordem_do_dia.data as data, "  +
+                         "        REPLACE(ordem_do_dia.caminho_texto_completo, ?, ?) as urlTextoCompleto, "  +
+                         "        REPLACE(ordem_do_dia.caminho_primeiro_expediente, ?, ?) as urlPrimeiroExpediente, "  +
+                         "        ordem_do_dia.texto_resumido as textoResumido, "  +
+                         "        ordem_do_dia.data_postagem as dataPostagem " +
+                         "FROM    ordem_do_dia, "  +
+                         "        tipo_ordem_do_dia "  +
+                         "WHERE   tipo_ordem_do_dia.id = ordem_do_dia.tipo_ordem_do_dia_id " +
+                         "AND     ordem_do_dia.id = ? ";
+   var queryOrdemDoDiaParams = [];
+   queryOrdemDoDiaParams.push(ordensDoDiaFileSystemPath);
+   queryOrdemDoDiaParams.push(ordensDoDiaFileWebUrl);
+   queryOrdemDoDiaParams.push(ordensDoDiaFileSystemPath);
+   queryOrdemDoDiaParams.push(ordensDoDiaFileWebUrl);
+   queryOrdemDoDiaParams.push(ordemDoDiaId);
+
+   return syslegisDataBase
+      .openConnection()
+      .then(function(connection) {
+         return syslegisDataBase.query(queryOrdemDoDia, queryOrdemDoDiaParams);
+      }).then(function(rows) {
+         if (rows && rows.length > 0) {
+            ordemDoDia = rows[0];
+
+         }
+         return syslegisDataBase.close();
+      },
+         //error in any previous then
+         function (err) {
+              //close the connection and rethrow the error
+              //to an promise catch it
+              return syslegisDataBase.close()
+                                     .then(function() {
+                                        throw err;
+                                     });
+         }
+      ).then(function() {
+         return {
+            'ordemDoDia': ordemDoDia
+         };
+      });
+}
+
+
 module.exports.getListaAnos = function() {
    var query = "SELECT DISTINCT EXTRACT(YEAR FROM ordem_do_dia.data) as ano " +
                "FROM ordem_do_dia " +
