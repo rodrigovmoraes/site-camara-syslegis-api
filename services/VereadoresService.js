@@ -16,7 +16,6 @@ var MySQLDatabase = require('../util/MySQLDatabase.js');
 /*****************************************************************************
 *********************************** PRIVATE ***********************************
 ******************************************************************************/
-
 var _beginNewLegislatura = function(row) {
    return {
       'idLegislatura': row.idLegislatura,
@@ -72,18 +71,22 @@ module.exports.getVereadores = function(filter) {
                          "FROM        autor " +
                          "INNER JOIN  mandato ON autor.id = mandato.vereador_id " +
                          "INNER JOIN  legislatura ON mandato.legislatura_id = legislatura.id " +
-                         "LEFT  JOIN  filiacao_partidaria ON ( filiacao_partidaria.vereador_id = autor.id) " +
+                         "LEFT  JOIN  filiacao_partidaria ON ( filiacao_partidaria.mandato_id = mandato.id ) " +
                          "LEFT  JOIN  partido ON filiacao_partidaria.partido_id = partido.id " +
                          "LEFT  JOIN  gabinete ON autor.gabinete_id = gabinete.id " +
                          "LEFT  JOIN  comunicacao_virtual ON comunicacao_virtual.vereador_id = autor.id " +
                          "LEFT  JOIN  tipo_comunicacao_virtual ON comunicacao_virtual.tipo_comunicacao_virtual_id = tipo_comunicacao_virtual.id " +
-                         "WHERE       autor.class = 'br.gov.sp.camarasorocaba.entities.Vereador' ";
-                         "AND         ( filiacao_partidaria.mandato_id = ( SELECT MAX(filiacao_partidaria2.mandato_id) " +
-                         "                                                 FROM   filiacao_partidaria as filiacao_partidaria2 " +
-                         "                                                 WHERE  filiacao_partidaria2.vereador_id = autor.id " +
-                         "                                               ) " +
-                         "              OR " +
-                         "              filiacao_partidaria.mandato_id IS NULL ) ";
+                         "WHERE       autor.class = 'br.gov.sp.camarasorocaba.entities.Vereador' " +
+                         "AND         ( filiacao_partidaria.id = ( SELECT MAX(filiacao_partidaria2.id) " +
+                         "                                         FROM   filiacao_partidaria as filiacao_partidaria2 " +
+                         "                                         WHERE  filiacao_partidaria2.mandato_id = mandato.id " +
+                         "                                       ) " +
+                         "            OR filiacao_partidaria.id IS NULL ) " +
+                         "AND         mandato.id = ( SELECT MAX(mandato2.id) " +
+                         "                           FROM   mandato as mandato2 " +
+                         "                           WHERE  mandato2.legislatura_id = legislatura.id " +
+                         "                           AND    mandato2.vereador_id = autor.id " +
+                         "                          ) ";
 
    var queryVereadoresParams = [];
 
@@ -182,22 +185,21 @@ module.exports.getVereador = function(idVereador) {
                         "FROM        autor " +
                         "INNER JOIN  mandato ON autor.id = mandato.vereador_id " +
                         "INNER JOIN  legislatura ON mandato.legislatura_id = legislatura.id " +
-                        "LEFT  JOIN  filiacao_partidaria ON ( filiacao_partidaria.vereador_id = autor.id) " +
+                        "LEFT  JOIN  filiacao_partidaria ON ( filiacao_partidaria.mandato_id = mandato.id ) " +
                         "LEFT  JOIN  partido ON filiacao_partidaria.partido_id = partido.id " +
                         "LEFT  JOIN  gabinete ON autor.gabinete_id = gabinete.id " +
                         "LEFT  JOIN  comunicacao_virtual ON comunicacao_virtual.vereador_id = autor.id " +
                         "LEFT  JOIN  tipo_comunicacao_virtual ON comunicacao_virtual.tipo_comunicacao_virtual_id = tipo_comunicacao_virtual.id " +
                         "WHERE       autor.class = 'br.gov.sp.camarasorocaba.entities.Vereador' " +
-                        "AND         ( filiacao_partidaria.mandato_id = ( SELECT MAX(filiacao_partidaria2.mandato_id) " +
-                        "                                                 FROM   filiacao_partidaria as filiacao_partidaria2 " +
-                        "                                                 WHERE  filiacao_partidaria2.vereador_id = autor.id " +
-                        "                                                ) " +
-                        "              OR " +
-                        "              filiacao_partidaria.mandato_id IS NULL ) " +
-                        "AND    legislatura.id = (  SELECT MAX(mandato2.legislatura_id) " +
+                        "AND         ( filiacao_partidaria.id = ( SELECT MAX(filiacao_partidaria2.id) " +
+                        "                                         FROM   filiacao_partidaria as filiacao_partidaria2 " +
+                        "                                         WHERE  filiacao_partidaria2.mandato_id = mandato.id " +
+                        "                                        ) " +
+                        "              OR filiacao_partidaria.id IS NULL ) " +
+                        "AND         mandato.id = ( SELECT MAX(mandato2.id) " +
                         "                           FROM   mandato as mandato2 " +
                         "                           WHERE  mandato2.vereador_id = autor.id " +
-                        "                         ) " +
+                        "                          ) " +
                         "AND         autor.id = ? " +
                         "ORDER BY    tipo_comunicacao_virtual.id; ";
    var queryVereadorParams = [];
